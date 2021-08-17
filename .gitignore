@@ -6,4 +6,8 @@ DGSMP.R
 EUJP_EUMortalityConvergence.Rproj
 clustering.R
 simulations.R
-data
+timonin_decomposition.R
+unused_code.R
+ST2.txt
+regions.txt
+raw_data/*
