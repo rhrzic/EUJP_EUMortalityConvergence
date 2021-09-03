@@ -13,16 +13,12 @@ require(dplyr)
 require(tidyr)
 require(HMDHFDplus)
 
-#source("analysis/hmd_ident.R") #This microscript defines username and password variables
-#Enter your username and password in the spaces provided below.
-
-username <- "rok.hrzic@gmail.com"
-password <- "VmwyCJiKwVu9n4u"
+source("analysis/hmd_ident.R") #This microscript defines username and password variables
 
 grabLE <- function(country) {
-  ple <- readHMDweb(CNTRY = country, item = "Mx_1x1", username, password, fixup = TRUE) %>%
+  ple <- readHMDweb(CNTRY = country, item = "E0per", username, password, fixup = TRUE) %>%
     mutate(country = country) %>%
-    filter(Year == 2005)
+    filter(Year >= 1990)
   
   print(paste0("Grabbed ple for ", country))
   
@@ -125,4 +121,4 @@ national_data = left_join(national_data_ple, national_data_pop, by = c("year", "
                              country == "SWE" ~ "SE",
                              country == "GBR_NP" ~ "UK"))
 
-write.csv(national_data, "dataset/national_data.csv", row.names=F)
+#write.csv(national_data, "dataset/national_data.csv", row.names=F)

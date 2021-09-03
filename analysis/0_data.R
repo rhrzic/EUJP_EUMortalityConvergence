@@ -24,7 +24,6 @@ regional_data <- regional_data %>%
   filter(!(country %in% one_region)) %>%
   filter(!(geo %in% small)) %>%
   mutate(NMS = ifelse(country %in% NMS, "New Member States", "Old Member States"),
-         #NMS = as.factor(NMS),
          sex = ifelse(sex == "M", "Men", "Women"))
 
 national_data <- national_data %>%

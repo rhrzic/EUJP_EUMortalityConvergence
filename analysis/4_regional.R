@@ -23,12 +23,12 @@ p1 <- ggplot()+
   geom_line(data = filter(regional_data, country %in% c("CZ", "HU", "PL") & sex == "Men"), aes(x = year, y = ple, group = geo, linetype=country), size = 0.15)+
   geom_dl(data = filter(national_data, country %in% c("PT", "LV") & year %in% 1992:2016 & sex == "Men"), aes(label = country, x = year, y = ple), method=list("first.points", cex = 0.7))+
   geom_dl(data = filter(regional_data, geo %in% c("CZ01", "HU31", "PL32") & year %in% 1992:2016 & sex == "Men"), aes(label = geo, x = year, y = ple), method=list("last.points", cex = 0.7))+
-  annotate("text", x = 2004.1, y = 62, label = "Short-term\naccession\neffects", hjust = "left", size = 3) +
+  annotate("text", x = 2004.1, y = 62, label = "Short-term\naccession\neffects", hjust = "left", size = 2.5) +
   facet_wrap(. ~ sex, scales = "free_y") +
   theme_bw()+ 
   scale_linetype_manual(values = c("CZ" = "solid", "HU" = "dotted", "PL" = "longdash"))+
   xlab("Year") +
-  scale_x_continuous(breaks = scales::pretty_breaks(n = 6))+
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 6), limits=c(1992, 2017))+
   ylab("Life expectancy at birth")+
   theme(legend.position = "none")
 
@@ -42,7 +42,7 @@ p2 <- ggplot()+
   theme_bw()+ 
   scale_linetype_manual(values = c("CZ" = "solid", "HU" = "dotted", "PL" = "longdash"))+
   xlab("Year") +
-  scale_x_continuous(breaks = scales::pretty_breaks(n = 6))+
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 6), limits=c(1992, 2017))+
   ylab("")+
   theme(legend.position = "none")
 
@@ -50,8 +50,8 @@ regional_differences <- left_join(regional_data, national_data, by = c("year", "
   mutate(ple = ple.x - ple.y)
 
 fig4 <- plot_grid(p1, p2, nrow = 1, ncol = 2, align = "hv", axis = "tblr", labels = NA)
-ggsave('figures/fig4.eps', fig4, scale = 2, width = 7, height = 3, units = "in", device='eps', dpi=700)
-ggsave('figures/fig4.png', fig4, scale = 2, width = 7, height = 3, units = "in", device='png', dpi=200)
+ggsave('figures/fig4.eps', fig4, scale = 1, width = 10, height = 5, units = "in", device='eps', dpi=700)
+ggsave('figures/fig4.png', fig4, scale = 1, width = 10, height = 5, units = "in", device='png', dpi=200)
 
 
 ## Regional Beta-convergence analysis ##
@@ -84,6 +84,9 @@ beta_convergence_regional_overall <- regional_data %>%
 
 beta_models_regional_overall <- beta_convergence_regional_overall %>%
   group_by(sex, country, start_year) %>%
+  mutate(center = (max(e0_start) + min(e0_start))/2,
+         top = max(1.1*e0_diff)) %>%
+  group_by(sex, country, start_year, center, top) %>%
   nest() %>%
   mutate(models = map(data, unconditional_beta),
          intercept = map(models, extract_intercept),
@@ -93,19 +96,13 @@ beta_models_regional_overall <- beta_convergence_regional_overall %>%
          pval = map(models, extract_p),
          adjr2=map(models, extract_adjr2)) %>%
   unnest(cols = c(beta, se, pval, adjr2))%>%
-  select(sex, start_year, intercept, beta, se, CI, pval, adjr2)
+  select(sex, start_year, intercept, beta, se, CI, pval, adjr2, center, top)
 
-require(ggpmisc)
 
 supp_fig3 <- ggplot(data = beta_convergence_regional_overall, aes(x = e0_start, y=e0_diff))+
   geom_text(aes(label = geo), position=position_jitter(width = 0.3), size = 3)+
   geom_smooth(method = "lm", se=FALSE, color = "black")+
-  stat_poly_eq(formula = y ~ x, 
-               aes(label = paste(..p.value.label.., ..rr.label.., sep = "~~~")), 
-               parse = TRUE,
-               size = 3,
-               label.x = "left",
-               label.y = "top") +         
+  geom_text(data = beta_models_regional_overall, aes(label = paste0("beta = ", beta, " ", str_sub(CI, 2L, -1L), ", adj. R\u00b2 = " , adjr2), x = center, y = top), size = 3)+
   facet_wrap(country ~ sex, scales = "free", ncol = 2)+
   theme_bw()+
   theme(legend.position = "none")+
@@ -113,8 +110,8 @@ supp_fig3 <- ggplot(data = beta_convergence_regional_overall, aes(x = e0_start, 
        y = "Annual change in life expectancy 1992-2016",
        color = "")
 
-ggsave('figures/supp_fig3.eps', supp_fig3, scale = 2, width = 6, height = 6, units = "in", device='eps', dpi=700)
-ggsave('figures/supp_fig3.png', supp_fig3, scale = 1, width = 10, height = 10, units = "in", device='png', dpi=300)
+ggsave('figures/supp_fig3.eps', supp_fig3, scale = 1, width = 8, height = 8, units = "in", device='eps', dpi=700)
+ggsave('figures/supp_fig3.png', supp_fig3, scale = 1, width = 8, height = 8, units = "in", device='png', dpi=300)
 
 beta_convergence_regional <- regional_data %>%
   group_by(sex, country, geo) %>%
@@ -150,7 +147,8 @@ pA <- ggplot(beta_models_regional, aes(x = start_year, y = beta,ymin = beta-1.96
   scale_x_continuous(breaks = scales::pretty_breaks(n = 6))+
   theme_bw()+
   scale_colour_grey() +  
-  theme(legend.position = "none")
+  theme(legend.position = "none")+
+  ggtitle("Trend in regional 4-year beta convergence")
 
 
 beta_convergence_regional_six <- regional_data %>%
@@ -301,83 +299,10 @@ pB <- ggplot(dispersion_regional_ci, aes(x = year, y = var, ymin = var_l, ymax =
   facet_wrap(country ~ sex, ncol = 2, scales = "free_y")+
   theme(legend.position = "top", legend.direction = "horizontal", legend.title=element_blank())+
   xlab("Year")+
-  ylab("Variance (95% bootstrap confidence interval)")
+  ylab("Variance (95% bootstrap confidence interval)")+
+  ggtitle("Trend in regional sigma convergence")
 
 
 supp_fig4 <- plot_grid(pA, pB, ncol = 1, nrow=2)
-ggsave('figures/supp_fig4.eps', supp_fig4, scale = 3, width = 4.5, height = 6, units = "in", device='eps', dpi=700)
-ggsave('figures/supp_fig4.png', supp_fig4, scale = 2, width = 4.5, height = 6, units = "in", device='png', dpi=300)
-
-
-ggplot(dispersion_regional_ci, aes(x = year, y = theil, ymin = theil_l, ymax = theil_u,))+
-  geom_rect(aes(xmin = 2004, xmax = 2007, ymin = -Inf, ymax = Inf), color = "gray95", fill = "gray95") +
-  geom_line()+
-  geom_pointrange()+
-  scale_y_continuous(breaks = scales::pretty_breaks(n = 6)) +
-  theme_bw()+
-  scale_x_continuous(breaks = scales::pretty_breaks(n = 6))+
-  facet_wrap(country ~ sex, ncol = 2, scales = "free_y")+
-  theme(legend.position = "top", legend.direction = "horizontal", legend.title=element_blank())+
-  xlab("Year")+
-  ylab("Theil index (95% bootstrap confidence interval)")
-
-## Trajectory analysis ##
-
-segmented_regional <- regional_data %>%
-  filter(country %in% c("CZ", "PL", "HU")) %>%
-  group_by(geo, sex) %>%
-  nest() %>%
-  mutate(segmented_model = map(.x = data, ~segmented_wrapper(.x$ple)))
-
-plot_seg_reg <- function(model){
-  
-  y_fit = broken.line(model)$fit
-  y_orig = model$y
-  year = 1992:2016
-  
-  psi = round(model$psi[,2],2)
-  psi_se = model$psi[,3]
-  
-  r2 = round(1 - (summary(model)$deviance/summary(model)$null.deviance), 3)
-  
-  ggplot()+
-    geom_line(aes(x = year, y=y_orig), color = "gray")+
-    annotate("pointrange", x = psi+1991, xmax = psi+1991+2*psi_se, xmin = psi+1991-2*psi_se,  y=y_orig[round(psi,0)], color = "red")+
-    annotate("text", x = 2013, y=y_orig[20]-5, label=paste0("R2 = ", r2), size = 5, color = "red")+
-    annotate("text", x = psi+1991, y=y_orig[round(psi,0)]+0.5, label=paste0(psi+1991," (",round(psi+1991-2*psi_se,2),", ",round(psi+1991+2*psi_se,2),")"), size = 5)+
-    xlab("Year")+
-    ylab("Life expectancy at birth")+
-    theme_bw()
-}
-
-plots <- segmented_regional %>%
-  mutate(plots = map(.x = segmented_model, ~plot_seg_reg(.x)))
-
-result <- segmented_regional %>%
-  mutate(psi_ci = map(.x = segmented_model, ~confint.segmented(.x)),
-         psi_est = map(.x = psi_ci, ~.x[,"Est."]+1991),
-         psi_l = map(.x = psi_ci, ~.x[,"CI(95%).low"]+1991),
-         psi_u = map(.x = psi_ci, ~.x[,"CI(95%).up"]+1991),
-         r2 = map(.x = segmented_model, ~(1-.x$deviance/.x$null.deviance))) %>%
-  unnest(cols = c(geo, sex, r2, psi_est, psi_l, psi_u)) %>%
-  select(geo, sex, r2, psi_est, psi_l, psi_u) %>%
-  mutate_at(4:6, signif, 5) %>%
-  mutate_at(3, signif, 3)
-
-result %>%
-  filter(between(psi_est, 2004.00, 2007.00) & between(psi_l, 2004.00, 2007.00) & between(psi_u, 2004.00, 2007.00)) 
-
-labels <- read.csv2(file = "dataset/NUTS2_labels.csv") %>%
-  select(GEO, GEO_LABEL)
-
-result %>%
-  left_join(., labels, by = c("geo" = "GEO")) %>%
-  select(Region = GEO_LABEL, sex, r2, psi_est, psi_l, psi_u) %>%
-  write.table(., file = "regions.txt", sep = ",", quote = FALSE, row.names = F)
-
-supp_fig4 <- plot_grid(plotlist = plots$plots, labels = paste0(plots$geo, " (",plots$sex,")"))
-ggsave('figures/supp_fig4.png', supp_fig4, scale = 4, width = 9, height = 6, units = "in", device='png', dpi=300)
-
-
-
-
+ggsave('figures/supp_fig4.eps', supp_fig4, scale = 1.3, width = 6, height = 8, units = "in", device='eps', dpi=700)
+ggsave('figures/supp_fig4.png', supp_fig4, scale = 1.3, width = 6, height = 8, units = "in", device='png', dpi=300)

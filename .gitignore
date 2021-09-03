@@ -2,12 +2,9 @@
 .Rhistory
 .RData
 .Ruserdata
-DGSMP.R
 EUJP_EUMortalityConvergence.Rproj
-clustering.R
-simulations.R
-timonin_decomposition.R
 unused_code.R
 ST2.txt
 regions.txt
 raw_data/*
+analysis/hmd_ident.R

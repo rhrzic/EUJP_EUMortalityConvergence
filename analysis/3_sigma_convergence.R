@@ -205,7 +205,8 @@ p1 <- ggplot()+
   facet_wrap(. ~ sex, scales = "free_y")+
   theme(legend.position = "top", legend.direction = "horizontal", legend.title=element_blank())+
   xlab("Year")+
-  ylab("Variance (95% bootstrap confidence interval)")
+  ylab("Variance (95% bootstrap confidence interval)")+
+  ggtitle("Trend in sigma convergence")
 
 p2 <- ggplot()+
   geom_rect(aes(xmin = 2004, xmax = 2007, ymin = -Inf, ymax = Inf), color = "gray95", fill = "gray95") +
@@ -273,7 +274,9 @@ p3 <- ggplot()+
   xlab("Year") +
   ylab("Variance - model of trend") +
   scale_x_continuous(breaks = scales::pretty_breaks(n = 6))+
-  theme_bw()
+  theme_bw()+
+  ggtitle("Changes in the sigma convergence trend")
+  
 
 p4 <- ggplot()+
   geom_rect(aes(xmin = 2004, xmax = 2007, ymin = -Inf, ymax = Inf), color = "gray95", fill = "gray95") +
@@ -290,8 +293,8 @@ p4 <- ggplot()+
   theme_bw()
 
 fig3 <- plot_grid(p1, p2, p3, p4, nrow = 2, ncol = 2, align = "hv", axis = "tblr", labels = NA)
-ggsave('figures/fig3.eps', fig3, scale = 2, width = 6, height = 6, units = "in", device='eps', dpi=700)
-ggsave('figures/fig3.png', fig3, scale = 2, width = 6, height = 6, units = "in", device='png', dpi=100)
+ggsave('figures/fig3.eps', fig3, scale = 1, width = 8, height = 8, units = "in", device='eps', dpi=700)
+ggsave('figures/fig3.png', fig3, scale = 1, width = 8, height = 8, units = "in", device='png', dpi=100)
 
 
 ## Supplementary figure for Theil index
@@ -309,7 +312,8 @@ pA <- ggplot()+
   facet_wrap(. ~ sex, scales = "free_y")+
   theme(legend.position = "top", legend.direction = "horizontal", legend.title=element_blank())+
   xlab("Year")+
-  ylab("Theil index (95% bootstrap confidence interval)")
+  ylab("Theil index (95% bootstrap confidence interval)")+
+  ggtitle("Trend in sigma convergence")
 
 pB <- ggplot()+
   geom_rect(aes(xmin = 2004, xmax = 2007, ymin = -Inf, ymax = Inf), color = "gray95", fill = "gray95") +
@@ -370,7 +374,8 @@ pC <- ggplot()+
   ylab("Theil index - model of trend") +
   scale_y_continuous(labels = comma)+
   scale_x_continuous(breaks = scales::pretty_breaks(n = 6))+
-  theme_bw()
+  theme_bw()+
+  ggtitle("Changes in the sigma convergence trend")
 
 pD <- ggplot()+
   geom_rect(aes(xmin = 2004, xmax = 2007, ymin = -Inf, ymax = Inf), color = "gray95", fill = "gray95") +
@@ -388,8 +393,8 @@ pD <- ggplot()+
   theme_bw()
 
 supp_fig2 <- plot_grid(pA, pB, pC, pD, nrow = 2, ncol =2, align = "hv", axis = "tblr", labels = NA)
-ggsave('figures/supp_fig2.eps', supp_fig2, scale = 3, width = 4.5, height = 4, units = "in", device='eps', dpi=700)
-ggsave('figures/supp_fig2.png', supp_fig2, scale = 3, width = 4.5, height = 4, units = "in", device='png', dpi=300)
+ggsave('figures/supp_fig2.eps', supp_fig2, scale = 1, width = 9, height = 8, units = "in", device='eps', dpi=700)
+ggsave('figures/supp_fig2.png', supp_fig2, scale = 1, width = 9, height = 8, units = "in", device='png', dpi=300)
 
 ## Decomposition
 

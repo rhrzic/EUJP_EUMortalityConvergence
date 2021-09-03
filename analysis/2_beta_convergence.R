@@ -1,12 +1,14 @@
 # Impact of European integration on life expectancy convergence
 # Rok Hrzic (r.hrzic (at) maastrichtuniversity.nl)
-# Version March 2021
+# Version April 2021
 
 require(dplyr)
 require(ggplot2)
 require(tidyr)
 require(purrr)
 require(ggtext)
+
+#Helper functions for extracting regression results
 
 unconditional_beta <- function(data){lm(e0_diff ~ e0_start, data = data)}
 weighted_beta <- function(data){lm(e0_diff ~ e0_start, weights = pop, data = data)}
@@ -17,30 +19,8 @@ extract_CI <- function(mod){round(confint(mod, "e0_start", level = 0.95),3)}
 extract_p <- function(mod){round(coef(summary(mod))[2,4], 5)}
 extract_adjr2 <- function(mod){round(summary(mod)$adj.r.squared, 3)}
 
-## Beta-convergence analysis - countries ##
 
-# national_diff <- national_data %>%
-#   filter(year %in% c(1990, 2004, 2017)) %>%
-#   group_by(country, NMS, sex) %>%
-#   summarise(e0_diff.1990_2017 = (last(ple)-first(ple))/27, 
-#             e0_diff.1990_2004 = (nth(ple, 2)-first(ple))/14,
-#             e0_diff.2004_2017 = (last(ple)-nth(ple,2))/13) %>%
-#   pivot_longer(e0_diff.1990_2017:e0_diff.2004_2017, names_to="year", names_prefix = "e0_diff.", values_to="e0_diff")
-# 
-# national_start <- national_data %>%
-#   filter(year %in% c(1990, 2004, 2017)) %>%
-#   group_by(country, NMS, sex) %>%
-#   summarise(e0_start.1990_2017 = first(ple), 
-#             e0_start.1990_2004 = first(ple),
-#             e0_start.2004_2017 = nth(ple,2)) %>%
-#   pivot_longer(e0_start.1990_2017:e0_start.2004_2017, names_to="year", names_prefix = "e0_start.", values_to="e0_start")
-# 
-# beta_convergence_national <- left_join(national_diff, national_start, by = c("country", "NMS", "year", "sex")) %>%
-#   mutate(year = case_when(year == "1990_2017" ~ "1990-2017",
-#                           year == "1990_2004" ~ "1990-2004",
-#                           year == "2004_2017" ~ "2004-2017"),
-#          year = factor(year, levels=c("1990-2017", "1990-2004", "2004-2017")))
-
+# Beta convergence at country level for the entire period (1990-2017), unweighted version
 
 beta_convergence_national_overall <- national_data %>%
   filter(year %in% c(1990,2017)) %>%
@@ -69,6 +49,8 @@ beta_models_national_overall <- beta_convergence_national_overall %>%
   unnest(cols = c(intercept, beta, se, pval, adjr2))%>%
   select(sex, start_year, intercept, beta, se, CI, pval, adjr2)
 
+# Beta convergence at country level for the entire period (1990-2017), population weighted version
+
 beta_models_national_overall_w <- beta_convergence_national_overall %>%
   group_by(sex, start_year) %>%
   nest() %>%
@@ -87,23 +69,24 @@ p1 <- filter(beta_convergence_national_overall, sex == "Men") %>%
   geom_text(aes(label = country), position=position_jitter(width = 0.3), size = 3)+
   geom_abline(aes(slope = filter(beta_models_national_overall, sex == "Men")$beta, intercept = filter(beta_models_national_overall, sex == "Men")$intercept, colour = "Unweighted regression"), key_glyph = "path")+
   geom_abline(aes(slope = filter(beta_models_national_overall_w, sex == "Men")$beta, intercept = filter(beta_models_national_overall_w, sex == "Men")$intercept, colour = "Population weighted regression"), key_glyph = "path")+
-  annotate("text", x = 71.5, y = 0.34, label = paste0("beta = -0.004 (-0.009, 0.002), adj. R\u00b2 = 0.031 "), size = 3)+
-  annotate("text", x = 71.5, y = 0.33, label = paste0("beta = -0.005 (-0.009, -0.001), adj. R\u00b2 = 0.217 "), size = 3, color = "gray")+
+  annotate("text", x = 71, y = 0.34, label = paste0("beta = -0.004 (-0.009, 0.002), adj. R\u00b2 = 0.031 "), size = 3)+
+  annotate("text", x = 71, y = 0.33, label = paste0("beta = -0.005 (-0.009, -0.001), adj. R\u00b2 = 0.217 "), size = 3, color = "gray")+
   facet_wrap(sex ~ ., scales = "free")+
   theme_bw()+
   scale_colour_manual(values = c("Unweighted regression" = "black", "Population weighted regression" = "gray"))+
   theme(legend.position = "top", legend.key = )+
   labs(x = "Life expectancy in 1990",
        y = "Annual change in life expectancy 1990-2017",
-       color = "")
+       color = "",
+       title = "Overall beta convergence")
 
 p2 <- filter(beta_convergence_national_overall, sex == "Women") %>%
   ggplot(aes(x = e0_start, y=e0_diff))+
   geom_text(aes(label = country), position=position_jitter(width = 0.3), size = 3)+
   geom_abline(aes(slope = filter(beta_models_national_overall, sex == "Women")$beta, intercept = filter(beta_models_national_overall, sex == "Women")$intercept, colour = "Unweighted regression"))+
   geom_abline(aes(slope = filter(beta_models_national_overall_w, sex == "Women")$beta, intercept = filter(beta_models_national_overall_w, sex == "Women")$intercept, colour = "Population weighted regression"))+
-  annotate("text", x = 79, y = 0.28, label = paste0("beta = -0.01 (-0.016, -0.004), adj. R\u00b2 = 0.317 "), size = 3)+
-  annotate("text", x = 79, y = 0.27, label = paste0("beta = -0.01 (-0.014, -0.005), adj. R\u00b2 = 0.443 "), size = 3, color = "gray")+
+  annotate("text", x = 78.5, y = 0.277, label = paste0("beta = -0.01 (-0.016, -0.004), adj. R\u00b2 = 0.317 "), size = 3)+
+  annotate("text", x = 78.5, y = 0.27, label = paste0("beta = -0.01 (-0.014, -0.005), adj. R\u00b2 = 0.443 "), size = 3, color = "gray")+
   facet_wrap(sex ~ ., scales = "free")+
   theme_bw()+
   scale_colour_manual(values = c("Unweighted regression" = "black", "Population weighted regression" = "gray"))+
@@ -111,6 +94,7 @@ p2 <- filter(beta_convergence_national_overall, sex == "Women") %>%
   labs(x = "Life expectancy in 1990",
        y = "")
 
+#Beta convergence at country level for 4-year periods, unweighted
 
 beta_convergence_national <- national_data %>%
   group_by(country, NMS, sex) %>%
@@ -125,7 +109,6 @@ beta_convergence_national <- national_data %>%
             e0_start = ple) %>%
   filter(!is.na(e0_diff))
 
-
 beta_models_national <- beta_convergence_national %>%
   group_by(sex, start_year) %>%
   nest() %>%
@@ -136,6 +119,8 @@ beta_models_national <- beta_convergence_national %>%
          adjr2=map(models, extract_adjr2)) %>%
   unnest(cols = c(beta, se, pval, adjr2))%>%
   select(sex, start_year, beta, se, pval, adjr2)
+
+#Beta convergence at country level for 4-year periods, population weighted
 
 beta_models_national_w <- beta_convergence_national %>%
   group_by(sex, start_year) %>%
@@ -158,11 +143,12 @@ p3 <- ggplot()+
   facet_grid(. ~ sex)+
   xlab("Starting year") +
   ylab("Beta coefficient (95% confidence interval)") +
-  annotate("text", x = 2004.1, y = 0.05, label = "Short-term\naccession\neffects", hjust = "left", size = 3) +
+  annotate("text", x = 2004.1, y = 0.05, label = "Short-term\naccession\neffects", hjust = "left", size = 2.5) +
   scale_x_continuous(breaks = scales::pretty_breaks(n = 6))+
   theme_bw()+
   scale_colour_grey() +  
-  theme(legend.position = "none")
+  theme(legend.position = "none")+
+  ggtitle("Trend in 4-year beta convergence")
 
 p4 <- ggplot()+
   geom_rect(aes(xmin = 2004, xmax = 2007, ymin = -Inf, ymax = Inf), color = "gray95", fill = "gray95") +
@@ -178,6 +164,9 @@ p4 <- ggplot()+
   scale_colour_grey() +  
   theme(legend.position = "none")
 
+
+# Segmented regression to detect significant break points, helper functions to extract and visualise results
+
 source("analysis/segmented.R")
 
 extract_fit <- function(mod){broken.line(mod)$fit}
@@ -185,6 +174,8 @@ extract_psi <- function(mod){round(mod$psi[,2],2)+1989}
 extract_psi_l <- function(mod){round(confint.segmented(mod, method = "delta")[,2],2)+1989}
 extract_psi_u <- function(mod){round(confint.segmented(mod, method = "delta")[,3],2)+1989}
 extract_r2 <- function(mod){round(1 - (summary(mod)$deviance/summary(mod)$null.deviance), 3)}
+
+# Segmented regression to detect significant break points, unweighted
 
 segmented_beta <- beta_models_national %>%
   group_by(sex) %>%
@@ -201,6 +192,8 @@ fit <- segmented_beta %>%
   summarise(y_fit = first(map(segmented_model, extract_fit)),
             x = 1:length(y_fit)+1989)
   
+# Segmented regression to detect significant break points, unweighted
+
 
 segmented_beta_w <- beta_models_national_w %>%
   group_by(sex) %>%
@@ -223,8 +216,8 @@ p5 <- ggplot()+
   geom_line(data = filter(fit_w, sex == "Men"), aes(x = x, y = y_fit), color = "gray", size = 1)+
   geom_pointrange(data = filter(segmented_beta, sex == "Men"), aes(x = psi, xmax = psi_u, xmin = psi_l,  y=filter(fit, sex == "Men")$y_fit[round(psi,0)-1989]), size = 1.2)+
   geom_pointrange(data = filter(segmented_beta_w, sex == "Men"), aes(x = psi, xmax = psi_u, xmin = psi_l,  y=filter(fit_w, sex == "Men")$y_fit[round(psi,0)-1989]), color = "gray", size = 1.2)+
-  geom_text(data = filter(segmented_beta, sex == "Men"), aes(x = 2010, y = 0.055, label = paste0("R\u00b2 = ",r2), colour = "Unweighted regression"),  size = 3, key_glyph = "rect")+
-  geom_text(data = filter(segmented_beta_w, sex == "Men"), aes(x = 2010, y = 0.050, label = paste0("R\u00b2 = ",r2), colour = "Population weighted regression",),  size = 3)+
+  geom_text(data = filter(segmented_beta, sex == "Men"), aes(x = 2010, y = 0.056, label = paste0("R\u00b2 = ",r2), colour = "Unweighted regression"),  size = 3, key_glyph = "rect")+
+  geom_text(data = filter(segmented_beta_w, sex == "Men"), aes(x = 2010, y = 0.049, label = paste0("R\u00b2 = ",r2), colour = "Population weighted regression",),  size = 3)+
   facet_grid(. ~ sex)+
   labs(x = "Starting year",
        y = "Beta coefficient - model of trend",
@@ -232,7 +225,8 @@ p5 <- ggplot()+
   scale_x_continuous(breaks = scales::pretty_breaks(n = 6))+
   scale_colour_manual(values = c("Unweighted regression" = "black", "Population weighted regression" = "gray"))+
   theme_bw()+
-  theme(legend.position = "none")
+  theme(legend.position = "none")+
+  ggtitle("Changes in 4-year beta convergence trend")
 
 p6 <- ggplot()+
   geom_rect(aes(xmin = 2004, xmax = 2007, ymin = -Inf, ymax = Inf), color = "gray95", fill = "gray95") +
@@ -240,8 +234,8 @@ p6 <- ggplot()+
   geom_line(data = filter(fit_w, sex == "Women"), aes(x = x, y = y_fit), color = "gray", size = 1)+
   geom_pointrange(data = filter(segmented_beta, sex == "Women"), aes(x = psi, xmax = psi_u, xmin = psi_l,  y=filter(fit, sex == "Women")$y_fit[round(psi,0)-1989]), size = 1.2)+
   geom_pointrange(data = filter(segmented_beta_w, sex == "Women"), aes(x = psi, xmax = psi_u, xmin = psi_l,  y=filter(fit_w, sex == "Women")$y_fit[round(psi,0)-1989]), color = "gray", size = 1.2)+
-  geom_text(data = filter(segmented_beta, sex == "Women"), aes(x = 2010, y = 0.052, label = paste0("R\u00b2 = ",r2)), color = "black", size = 3)+
-  geom_text(data = filter(segmented_beta_w, sex == "Women"), aes(x = 2010, y = 0.048, label = paste0("R\u00b2 = ",r2)), color = "gray", size = 3)+
+  geom_text(data = filter(segmented_beta, sex == "Women"), aes(x = 2010, y = 0.053, label = paste0("R\u00b2 = ",r2)), color = "black", size = 3)+
+  geom_text(data = filter(segmented_beta_w, sex == "Women"), aes(x = 2010, y = 0.047, label = paste0("R\u00b2 = ",r2)), color = "gray", size = 3)+
   facet_grid(. ~ sex)+
   xlab("Starting year") +
   ylab("") +
@@ -251,10 +245,10 @@ p6 <- ggplot()+
 
 
 fig2 <- plot_grid(p1, p2, p3, p4, p5, p6, nrow = 3, ncol = 2, align = "hv", axis = "tblr", labels = NA)
-ggsave('figures/fig2.eps', fig2, scale = 3, width = 4.5, height = 6, units = "in", device='eps', dpi=700)
-ggsave('figures/fig2.png', fig2, scale = 2, width = 4.5, height = 6, units = "in", device='png', dpi=100)
+ggsave('figures/fig2.eps', fig2, scale = 1.3, width = 8, height = 10, units = "in", device='eps', dpi=700)
+ggsave('figures/fig2.png', fig2, scale = 1.3, width = 8, height = 10, units = "in", device='png', dpi=200)
 
-## Sensitivity - different time periods (6 year interval)
+## Sensitivity analysis - different time periods (6 year intervals), unweighted beta convergence
 
 beta_convergence_national_six <- national_data %>%
   group_by(country, NMS, sex) %>%
@@ -281,6 +275,9 @@ beta_models_national_six <- beta_convergence_national_six %>%
   unnest(cols = c(beta, se, pval, adjr2))%>%
   select(sex, start_year, beta, se, pval, adjr2)
 
+## Sensitivity analysis - different time periods (6 year intervals), population weighted beta convergence
+
+
 beta_models_national_w_six <- beta_convergence_national_six %>%
   group_by(sex, start_year) %>%
   nest() %>%
@@ -302,11 +299,12 @@ pA <- ggplot()+
   facet_grid(. ~ sex)+
   xlab("Starting year") +
   ylab("Beta coefficient (95% confidence interval)") +
-  annotate("text", x = 2004.1, y = 0.025, label = "Short-term\naccession\neffects", hjust = "left", size = 3) +
+  annotate("text", x = 2004.1, y = 0.025, label = "Short-term\naccession\neffects", hjust = "left", size = 2.5) +
   scale_x_continuous(breaks = scales::pretty_breaks(n = 6))+
   scale_colour_manual(values = c("Unweighted regression" = "black", "Population weighted regression" = "gray"))+
   theme_bw()+
-  theme(legend.position = "top", legend.title = element_blank())
+  theme(legend.position = "top", legend.title = element_blank())+
+  ggtitle("Trend in 6-year beta convergence")
 
 pB <- ggplot()+
   geom_rect(aes(xmin = 2004, xmax = 2007, ymin = -Inf, ymax = Inf), color = "gray95", fill = "gray95") +
@@ -321,6 +319,8 @@ pB <- ggplot()+
   theme_bw()+
   scale_colour_grey() +  
   theme(legend.position = "none")
+
+## Sensitivity analysis - different time periods (6 year intervals), segmented regression of coefficients from the unweighted beta convergence analysis
 
 source("analysis/segmented.R")
 
@@ -346,6 +346,8 @@ fit_six <- segmented_beta_six %>%
             x = 1:length(y_fit)+1989)
 
 
+## Sensitivity analysis - different time periods (6 year intervals), segmented regression of coefficients from the population weighted beta convergence analysis
+
 segmented_beta_w_six <- beta_models_national_w_six %>%
   group_by(sex) %>%
   nest() %>%
@@ -367,13 +369,14 @@ pC <- ggplot()+
   geom_line(data = filter(fit_w_six, sex == "Men"), aes(x = x, y = y_fit), color = "gray", size = 1)+
   geom_pointrange(data = filter(segmented_beta_six, sex == "Men"), aes(x = psi, xmax = psi_u, xmin = psi_l,  y=filter(fit_six, sex == "Men")$y_fit[round(psi,0)-1989]), size = 1.2)+
   geom_pointrange(data = filter(segmented_beta_w_six, sex == "Men"), aes(x = psi, xmax = psi_u, xmin = psi_l,  y=filter(fit_w_six, sex == "Men")$y_fit[round(psi,0)-1989]), color = "gray", size = 1.2)+
-  geom_text(data = filter(segmented_beta_six, sex == "Men"), aes(x = 2010, y = 0.025, label = paste0("R\u00b2 = ",r2)), color = "black", size = 3)+
-  geom_text(data = filter(segmented_beta_w_six, sex == "Men"), aes(x = 2010, y = 0.020, label = paste0("R\u00b2 = ",r2)), color = "gray", size = 3)+
+  geom_text(data = filter(segmented_beta_six, sex == "Men"), aes(x = 1995, y = 0.025, label = paste0("R\u00b2 = ",r2)), color = "black", size = 3)+
+  geom_text(data = filter(segmented_beta_w_six, sex == "Men"), aes(x = 1995, y = 0.020, label = paste0("R\u00b2 = ",r2)), color = "gray", size = 3)+
   facet_grid(. ~ sex)+
   xlab("Starting year") +
   ylab("Beta coefficient (95% confidence interval)") +
   scale_x_continuous(breaks = scales::pretty_breaks(n = 6))+
-  theme_bw()
+  theme_bw()+
+  ggtitle("Changes in 6-year beta convergence trend")
 
 pD <- ggplot()+
   geom_rect(aes(xmin = 2004, xmax = 2007, ymin = -Inf, ymax = Inf), color = "gray95", fill = "gray95") +
@@ -381,8 +384,8 @@ pD <- ggplot()+
   geom_line(data = filter(fit_w_six, sex == "Women"), aes(x = x, y = y_fit), color = "gray", size = 1)+
   geom_pointrange(data = filter(segmented_beta_six, sex == "Women"), aes(x = psi, xmax = psi_u, xmin = psi_l,  y=filter(fit_six, sex == "Women")$y_fit[round(psi,0)-1989]), size = 1.2)+
   geom_pointrange(data = filter(segmented_beta_w_six, sex == "Women"), aes(x = psi, xmax = psi_u, xmin = psi_l,  y=filter(fit_w_six, sex == "Women")$y_fit[round(psi,0)-1989]), color = "gray", size = 1.2)+
-  geom_text(data = filter(segmented_beta_six, sex == "Women"), aes(x = 2010, y = 0.025, label = paste0("R\u00b2 = ",r2)), color = "black", size = 3)+
-  geom_text(data = filter(segmented_beta_w_six, sex == "Women"), aes(x = 2010, y = 0.020, label = paste0("R\u00b2 = ",r2)), color = "gray", size = 3)+
+  geom_text(data = filter(segmented_beta_six, sex == "Women"), aes(x = 1995, y = 0.025, label = paste0("R\u00b2 = ",r2)), color = "black", size = 3)+
+  geom_text(data = filter(segmented_beta_w_six, sex == "Women"), aes(x = 1995, y = 0.020, label = paste0("R\u00b2 = ",r2)), color = "gray", size = 3)+
   facet_grid(. ~ sex)+
   xlab("Starting year") +
   ylab("Beta coefficient (95% confidence interval)") +
@@ -390,6 +393,6 @@ pD <- ggplot()+
   theme_bw()
 
 supp_fig1 <- plot_grid(pA, pB, pC, pD, nrow = 2, ncol = 2, align = "hv", axis = "tblr", labels = NA)
-ggsave('figures/supp_fig1.eps', supp_fig1, scale = 3, width = 4.5, height = 4.5, units = "in", device='eps', dpi=700)
-ggsave('figures/supp_fig1.png', supp_fig1, scale = 3, width = 4.5, height = 4.5, units = "in", device='png', dpi=300)
+ggsave('figures/supp_fig1.eps', supp_fig1, scale = 1.3, width = 8, height = 8, units = "in", device='eps', dpi=700)
+ggsave('figures/supp_fig1.png', supp_fig1, scale = 1.3, width = 8, height = 8, units = "in", device='png', dpi=300)
 
