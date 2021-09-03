@@ -7,6 +7,7 @@ require(ggplot2)
 require(tidyr)
 require(purrr)
 require(ggtext)
+require(cowplot)
 
 #Helper functions for extracting regression results
 
@@ -148,7 +149,7 @@ p3 <- ggplot()+
   theme_bw()+
   scale_colour_grey() +  
   theme(legend.position = "none")+
-  ggtitle("Trend in 4-year beta convergence")
+  ggtitle("Trend in four-year beta convergence")
 
 p4 <- ggplot()+
   geom_rect(aes(xmin = 2004, xmax = 2007, ymin = -Inf, ymax = Inf), color = "gray95", fill = "gray95") +
@@ -226,7 +227,7 @@ p5 <- ggplot()+
   scale_colour_manual(values = c("Unweighted regression" = "black", "Population weighted regression" = "gray"))+
   theme_bw()+
   theme(legend.position = "none")+
-  ggtitle("Changes in 4-year beta convergence trend")
+  ggtitle("Changes in the four-year beta convergence trend")
 
 p6 <- ggplot()+
   geom_rect(aes(xmin = 2004, xmax = 2007, ymin = -Inf, ymax = Inf), color = "gray95", fill = "gray95") +
@@ -304,7 +305,7 @@ pA <- ggplot()+
   scale_colour_manual(values = c("Unweighted regression" = "black", "Population weighted regression" = "gray"))+
   theme_bw()+
   theme(legend.position = "top", legend.title = element_blank())+
-  ggtitle("Trend in 6-year beta convergence")
+  ggtitle("Trend in six-year beta convergence")
 
 pB <- ggplot()+
   geom_rect(aes(xmin = 2004, xmax = 2007, ymin = -Inf, ymax = Inf), color = "gray95", fill = "gray95") +
@@ -376,7 +377,7 @@ pC <- ggplot()+
   ylab("Beta coefficient (95% confidence interval)") +
   scale_x_continuous(breaks = scales::pretty_breaks(n = 6))+
   theme_bw()+
-  ggtitle("Changes in 6-year beta convergence trend")
+  ggtitle("Changes in the six-year beta convergence trend")
 
 pD <- ggplot()+
   geom_rect(aes(xmin = 2004, xmax = 2007, ymin = -Inf, ymax = Inf), color = "gray95", fill = "gray95") +

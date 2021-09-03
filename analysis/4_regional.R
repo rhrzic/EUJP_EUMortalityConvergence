@@ -108,7 +108,8 @@ supp_fig3 <- ggplot(data = beta_convergence_regional_overall, aes(x = e0_start, 
   theme(legend.position = "none")+
   labs(x = "Life expectancy in 1992",
        y = "Annual change in life expectancy 1992-2016",
-       color = "")
+       color = "")+
+  ggtitle("Overall regional beta convergence")
 
 ggsave('figures/supp_fig3.eps', supp_fig3, scale = 1, width = 8, height = 8, units = "in", device='eps', dpi=700)
 ggsave('figures/supp_fig3.png', supp_fig3, scale = 1, width = 8, height = 8, units = "in", device='png', dpi=300)
@@ -148,7 +149,7 @@ pA <- ggplot(beta_models_regional, aes(x = start_year, y = beta,ymin = beta-1.96
   theme_bw()+
   scale_colour_grey() +  
   theme(legend.position = "none")+
-  ggtitle("Trend in regional 4-year beta convergence")
+  ggtitle("Trend in regional four-year beta convergence")
 
 
 beta_convergence_regional_six <- regional_data %>%
@@ -300,7 +301,7 @@ pB <- ggplot(dispersion_regional_ci, aes(x = year, y = var, ymin = var_l, ymax =
   theme(legend.position = "top", legend.direction = "horizontal", legend.title=element_blank())+
   xlab("Year")+
   ylab("Variance (95% bootstrap confidence interval)")+
-  ggtitle("Trend in regional sigma convergence")
+  ggtitle("Variance in regional life expectancy")
 
 
 supp_fig4 <- plot_grid(pA, pB, ncol = 1, nrow=2)

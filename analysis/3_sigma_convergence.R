@@ -206,7 +206,7 @@ p1 <- ggplot()+
   theme(legend.position = "top", legend.direction = "horizontal", legend.title=element_blank())+
   xlab("Year")+
   ylab("Variance (95% bootstrap confidence interval)")+
-  ggtitle("Trend in sigma convergence")
+  ggtitle("Variance in life expectancy")
 
 p2 <- ggplot()+
   geom_rect(aes(xmin = 2004, xmax = 2007, ymin = -Inf, ymax = Inf), color = "gray95", fill = "gray95") +
@@ -275,7 +275,7 @@ p3 <- ggplot()+
   ylab("Variance - model of trend") +
   scale_x_continuous(breaks = scales::pretty_breaks(n = 6))+
   theme_bw()+
-  ggtitle("Changes in the sigma convergence trend")
+  ggtitle("Changes in the variance trend")
   
 
 p4 <- ggplot()+
@@ -313,7 +313,7 @@ pA <- ggplot()+
   theme(legend.position = "top", legend.direction = "horizontal", legend.title=element_blank())+
   xlab("Year")+
   ylab("Theil index (95% bootstrap confidence interval)")+
-  ggtitle("Trend in sigma convergence")
+  ggtitle("Theil index of life expectancy")
 
 pB <- ggplot()+
   geom_rect(aes(xmin = 2004, xmax = 2007, ymin = -Inf, ymax = Inf), color = "gray95", fill = "gray95") +
@@ -375,7 +375,7 @@ pC <- ggplot()+
   scale_y_continuous(labels = comma)+
   scale_x_continuous(breaks = scales::pretty_breaks(n = 6))+
   theme_bw()+
-  ggtitle("Changes in the sigma convergence trend")
+  ggtitle("Changes in the Theil index trend")
 
 pD <- ggplot()+
   geom_rect(aes(xmin = 2004, xmax = 2007, ymin = -Inf, ymax = Inf), color = "gray95", fill = "gray95") +
