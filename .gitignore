@@ -1,10 +1,13 @@
+.DS_Store
 .Rproj.user
 .Rhistory
 .RData
 .Ruserdata
 EUJP_EUMortalityConvergence.Rproj
 unused_code.R
-ST2.txt
 regions.txt
 raw_data/*
 analysis/hmd_ident.R
+analysis/.DS_Store
+dataset/.DS_Store
+figures/.DS_Store
